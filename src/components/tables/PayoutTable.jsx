@@ -11,7 +11,10 @@
  *   <PayoutTable gameName="Roulette"          scenario={rouletteScenario} />
  *   <PayoutTable gameName="Three Card Poker"  chips={[...]} totalBet={100} />
  */
+import { lazy, Suspense, useState } from 'react'
 import { ZW, CW, CH, RED_NUMS } from '../../lib/rouletteScenario'
+
+const RouletteTable3D = lazy(() => import('./RouletteTable3D'))
 
 // ─── Shared chip color map ────────────────────────────────────────────────────
 
@@ -123,10 +126,8 @@ function RouletteTable({ scenario }) {
   ]
 
   return (
-    <div className="flex flex-col" style={{ background: '#0b1a0b' }}>
-      {/* ── SVG table ───────────────────────────────────────── */}
-      <div className="w-full">
-        <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full">
+    <div className="w-full" style={{ background: '#0b1a0b' }}>
+      <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full">
 
           {/* Filters */}
           <defs>
@@ -242,42 +243,94 @@ function RouletteTable({ scenario }) {
           </text>
         </svg>
       </div>
+  )
+}
 
-      {/* ── Bet list (below table) ──────────────────────────── */}
-      <div style={{ borderTop: '1px solid #15803d' }}>
-        <div className="px-3 py-2" style={{ borderBottom: '1px solid #1a3a1a' }}>
-          <p className="text-xs font-semibold uppercase tracking-widest"
-            style={{ color: '#86efac' }}>Bets on the Table</p>
-        </div>
-        <div className="grid gap-2 p-3"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
-          {bets.map((bet, i) => {
-            const s = CHIP_COLORS[bet.chip?.color] ?? CHIP_COLORS.Red
-            return (
-              <div key={i} className="flex items-center justify-between px-2.5 py-2 rounded-lg"
-                style={{ background: '#0f2a0f', border: '1px solid #1a3a1a' }}>
-                <span className="text-xs font-medium leading-tight mr-2" style={{ color: '#d1fae5' }}>
-                  {bet.label}
+function BetListPanel({ bets }) {
+  return (
+    <div style={{ borderTop: '1px solid #15803d', background: '#0b1a0b' }}>
+      <div className="px-3 py-2" style={{ borderBottom: '1px solid #1a3a1a' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: '#86efac' }}>Bets on the Table</p>
+      </div>
+      <div className="grid gap-2 p-3"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+        {bets.map((bet, i) => {
+          const s = CHIP_COLORS[bet.chip?.color] ?? CHIP_COLORS.Red
+          return (
+            <div key={i} className="flex items-center justify-between px-2.5 py-2 rounded-lg"
+              style={{ background: '#0f2a0f', border: '1px solid #1a3a1a' }}>
+              <span className="text-xs font-medium leading-tight mr-2" style={{ color: '#d1fae5' }}>
+                {bet.label}
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span style={{
+                  display: 'inline-block', width: 8, height: 8,
+                  borderRadius: '50%', background: s.bg, border: `1.5px solid ${s.border}`,
+                  flexShrink: 0,
+                }} />
+                <span className="text-xs font-mono font-bold" style={{ color: '#fbbf24' }}>
+                  ${bet.amount}
                 </span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span style={{
-                    display: 'inline-block', width: 8, height: 8,
-                    borderRadius: '50%', background: s.bg, border: `1.5px solid ${s.border}`,
-                    flexShrink: 0,
-                  }} />
-                  <span className="text-xs font-mono font-bold" style={{ color: '#fbbf24' }}>
-                    ${bet.amount}
-                  </span>
-                </div>
               </div>
-            )
-          })}
-        </div>
-        <div className="px-3 pb-2.5 flex items-center justify-between">
-          <p className="text-xs font-mono" style={{ color: '#6b7280' }}>Winnings only — enter total below</p>
-          <p className="text-xs font-mono font-bold" style={{ color: '#fbbf24' }}>???</p>
+            </div>
+          )
+        })}
+      </div>
+      <div className="px-3 pb-2.5 flex items-center justify-between">
+        <p className="text-xs font-mono" style={{ color: '#6b7280' }}>Winnings only — enter total below</p>
+        <p className="text-xs font-mono font-bold" style={{ color: '#fbbf24' }}>???</p>
+      </div>
+    </div>
+  )
+}
+
+function RouletteRenderer({ scenario }) {
+  const [mode, setMode] = useState('2d')
+  return (
+    <div className="w-full rounded-2xl overflow-hidden"
+      style={{ border: '1px solid #15803d' }}>
+      {/* Mode toggle */}
+      <div className="flex items-center justify-end gap-2 px-3 py-2"
+        style={{ background: '#0a1f0a', borderBottom: '1px solid #15803d' }}>
+        <span className="text-xs uppercase tracking-widest font-medium"
+          style={{ color: '#86efac' }}>View:</span>
+        <div className="flex rounded-md overflow-hidden text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setMode('2d')}
+            className="px-3 py-1 transition-colors"
+            style={{
+              background: mode === '2d' ? '#fbbf24' : '#1a3a1a',
+              color: mode === '2d' ? '#000' : '#86efac',
+            }}
+          >2D</button>
+          <button
+            type="button"
+            onClick={() => setMode('3d')}
+            className="px-3 py-1 transition-colors"
+            style={{
+              background: mode === '3d' ? '#fbbf24' : '#1a3a1a',
+              color: mode === '3d' ? '#000' : '#86efac',
+            }}
+          >3D</button>
         </div>
       </div>
+
+      {mode === '2d' ? (
+        <RouletteTable scenario={scenario} />
+      ) : (
+        <Suspense fallback={
+          <div className="flex items-center justify-center text-xs font-mono"
+            style={{ height: 340, color: '#86efac', background: '#06120a' }}>
+            Loading 3D table…
+          </div>
+        }>
+          <RouletteTable3D scenario={scenario} />
+        </Suspense>
+      )}
+
+      <BetListPanel bets={scenario.bets} />
     </div>
   )
 }
@@ -435,12 +488,7 @@ export default function PayoutTable({ gameName, scenario, chips, totalBet, perSp
   const isLIR = name.includes('let it ride')
 
   if (name.includes('roulette') && scenario) {
-    return (
-      <div className="w-full rounded-2xl overflow-hidden"
-        style={{ border: '1px solid #15803d' }}>
-        <RouletteTable scenario={scenario} />
-      </div>
-    )
+    return <RouletteRenderer scenario={scenario} />
   }
 
   return (

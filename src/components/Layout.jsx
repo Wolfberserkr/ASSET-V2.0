@@ -8,7 +8,7 @@ import {
   Shield, LayoutDashboard, KeyRound, LogOut,
   CheckSquare, BarChart2, FileText, ClipboardList, BookOpen,
   ChevronRight, PlayCircle, GraduationCap, Menu, X, Library, Bell, Lock,
-  HelpCircle,
+  HelpCircle, Coins,
 } from 'lucide-react'
 
 const REQUIRED = 20
@@ -40,6 +40,7 @@ const agentNav = [
   { to: '/drill',           label: 'Drill',           icon: PlayCircle },
   { to: '/practice',        label: 'Practice',        icon: GraduationCap },
   { to: '/resources',       label: 'Resources',       icon: Library },
+  { to: '/pay-tables',      label: 'Pay Tables',      icon: Coins },
   { to: '/history',         label: 'My History',      icon: FileText },
   { to: '/help',            label: 'How It Works',    icon: HelpCircle },
   { to: '/change-password', label: 'Change Password', icon: KeyRound },
@@ -197,13 +198,16 @@ export default function Layout({ children, bg }) {
   const drillDisabled = !isManagement && !cooldown.canDrill
   const drillBadge    = !isManagement && cooldown.remainingSeconds > 0 ? cooldown.remainingDisplay : null
 
+  const onDrill = location.pathname.startsWith('/drill')
   const navLinks = isManagement
     ? mgmtNav
-    : agentNav.map(link =>
-        link.to === '/drill'
-          ? { ...link, disabled: drillDisabled, badge: drillBadge }
-          : link,
-      )
+    : agentNav
+        .filter(link => link.to !== '/pay-tables' || !onDrill)
+        .map(link =>
+          link.to === '/drill'
+            ? { ...link, disabled: drillDisabled, badge: drillBadge }
+            : link,
+        )
   const pageKey = useRef(0)
   const prevPath = useRef(location.pathname)
 
