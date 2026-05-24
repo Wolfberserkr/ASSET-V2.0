@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: '/',
+  base: '/ASSET-V2.0/',
   cacheDir: '/tmp/vite-cache',
   plugins: [
     react(),
